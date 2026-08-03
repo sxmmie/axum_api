@@ -1,0 +1,5 @@
+max_width = 180               # default is 80, increase to whatever you prefer
+hard_tabs = true
+imports_granularity = "Crate"
+reorder_imports = true
+# newline_style = "Unix"
