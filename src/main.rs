@@ -7,8 +7,10 @@ async fn main() {
 
 	// HTTP server setup
 	let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+
 	println!("Listening on 0.0.0.0:3000");
-	axum::serve(listener, app).await.unwrap()
+
+	axum::serve(listener, app).with_graceful_shutdown(shutdown_signal()).await.unwrap()
 }
 
 // Adding graceful shutdown
