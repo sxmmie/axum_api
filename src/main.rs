@@ -1,9 +1,26 @@
+use std::sync::Arc;
+
 use axum::{Router, routing::get};
+use sqlx::PgPool;
 use tokio::signal;
+
+mod config;
+mod error;
+mod state;
+
+struct AppState {
+	db_pool: PgPool,
+	config: AppConfig,
+}
 
 #[tokio::main]
 async fn main() {
-	let app = Router::new().route("/", get(|| async { "Hello, world!" }));
+	let state = Arc::new(AppState {
+		db_pool: create_pool().await,
+		config: load_config(),
+	});
+
+	let app = routes::all_routes().layer(TraceLayer::new_for_http().with_state(state));
 
 	// HTTP server setup
 	let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
