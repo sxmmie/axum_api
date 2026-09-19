@@ -4,6 +4,8 @@ use axum::{Router, routing::get};
 use sqlx::PgPool;
 use tokio::signal;
 
+use crate::config::load_config;
+
 mod config;
 mod error;
 mod state;
