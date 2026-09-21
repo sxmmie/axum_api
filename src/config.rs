@@ -1,3 +1,7 @@
-struct Config {}
+pub struct Config {
+    pub ,
+}
 
-pub fn load_config() -> Config {}
+pub fn load_config() -> Config {
+
+}

@@ -8,6 +8,7 @@ use crate::config::load_config;
 
 mod config;
 mod error;
+mod models;
 mod state;
 
 struct AppState {
@@ -30,6 +31,10 @@ async fn main() {
 	println!("Listening on 0.0.0.0:3000");
 
 	axum::serve(listener, app).with_graceful_shutdown(shutdown_signal()).await.unwrap()
+}
+
+async fn create_pool() -> _ {
+	todo!()
 }
 
 // Adding graceful shutdown
