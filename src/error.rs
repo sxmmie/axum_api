@@ -5,16 +5,33 @@ use axum::{
 	response::{IntoResponse, Response},
 };
 
+#[derive(Debug, thiserror::Error)]
 enum AppError {
-	NotFound(String),
+	#[error("resource not found")]
+	NotFound,
+
+	#[error("bad request")]
 	BadRequest(String),
+
+	#[error("unauthorized")]
 	Unauthorized,
-	Internal(String),
+
+	#[error("forbidden")]
+	Forbidden,
+
+	#[error("conflict: {0}")]
+	Conflict(String),
+
+	#[error("database error")]
+	Database(#[from] sqlx::Error),
+
+	#[error("internal server error")]
+	Internal(#[from] anyhow::Error),
 }
 
 impl IntoResponse for AppError {
 	fn into_response(self) -> Response {
-		let (status, message) = match self {
+		let (status, message) = match &self {
 			AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
 			AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
 			AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized".into()),
