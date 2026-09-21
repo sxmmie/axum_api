@@ -1,3 +1,5 @@
+use std::env;
+
 #[derive(Clone, Debug)]
 pub struct Config {
 	pub database_url: String,
@@ -21,5 +23,17 @@ pub enum ConfigError {
 }
 
 impl Config {
-	pub fn from_env() -> Result<Self, ConfigError> {}
+	pub fn from_env() -> Result<Self, ConfigError> {
+		dotenvy::dotenv().ok(); // no-op if .env absent (e.g. prod)
+
+		Ok(Config {
+			database_url: env::var("DATABASE_URL").map_err(|_| ConfigError::Missing("DATABASE_URL"))?,
+			server_port: env::var("PORT").unwrap_or_else(|_| "3000".into()).parse().map_err(|_| ConfigError::Invalid("PORT"))?,
+			jwt_secret: env::var("JWT_SECRET").map_err(|_| ConfigError::Missing("JWT_SECRET"))?,
+			environment: match env::var("APP_ENV").as_deref() {
+				Ok("production") => Environment::Production,
+				_ => Environment::Development,
+			},
+		})
+	}
 }
