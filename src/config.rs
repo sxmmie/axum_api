@@ -11,6 +11,7 @@ pub struct Config {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Environment {
 	Development,
+	Staging,
 	Production,
 }
 
@@ -32,6 +33,7 @@ impl Config {
 			jwt_secret: env::var("JWT_SECRET").map_err(|_| ConfigError::Missing("JWT_SECRET"))?,
 			environment: match env::var("APP_ENV").as_deref() {
 				Ok("production") => Environment::Production,
+				Ok("staging") => Environment::Staging,
 				_ => Environment::Development,
 			},
 		})
