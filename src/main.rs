@@ -7,6 +7,7 @@ use tokio::signal;
 use crate::config::load_config;
 
 mod config;
+mod dto;
 mod error;
 mod models;
 mod state;
