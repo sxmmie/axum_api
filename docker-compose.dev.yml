@@ -1,0 +1,88 @@
+name: axum_api_dev
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: axum_api:dev
+    restart: unless-stopped
+    ports:
+      - 3030:3030
+    environment:
+      DATABASE_URL: postgres://postgres:devpassword@postgres:5432/axum_api_dev
+      REDIS_URL: redis://redis:6379
+      APP_ENV: development
+      PORT: 3000
+      RUST_LOG: debug,tower_http=debug,sqlx=info
+    volumes:
+      # Bind-mount source for hot reload — cargo-watch picks up changes.
+      - ./src:/app/src
+      - ./migrations:/app/migrations
+      - ./Cargo.toml:/app/Cargo.toml
+      - ./Cargo.lock:/app/Cargo.lock
+      # Named volume for the target dir so compiled artifacts persist
+      # across container restarts and aren't shadowed by the bind mount.
+      - cargo_target:/app/target
+      - cargo_registry:/usr/local/cargo/registry
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTRES_PASSWORD: devpassword
+      POSTGRES_DB: axum_api_dev_db
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d axum_api_dev_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    networks:
+      - backend
+    depends_on:
+      - postgres
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  cargo_target:
+  cargo_registry:
