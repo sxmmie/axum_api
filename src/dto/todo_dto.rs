@@ -26,7 +26,6 @@ pub struct UpdateTodoRequest {
 #[derive(Debug, Serialize)]
 pub struct TodoResponse {
 	id: i64,
-	user_id: i64,
 	title: String,
 	description: String,
 	completed: bool,
