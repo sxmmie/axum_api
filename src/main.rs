@@ -10,6 +10,7 @@ mod config;
 mod dto;
 mod error;
 mod models;
+mod repositories;
 mod state;
 
 struct AppState {
