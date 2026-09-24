@@ -1,4 +1,4 @@
-use anyhow::Ok;
+// use anyhow::Ok;
 use sqlx::PgPool;
 
 use crate::{
@@ -30,6 +30,16 @@ impl<'a> TodoRepository<'a> {
 		Ok(todo)
 	}
 
+	pub async fn find_by_id(&self, id: i64, user_id: i64) -> AppResult<Option<Todo>> {
+		let todo = sqlx::query_as::<_, Todo>("SELECL * FROM users WHERE id = $1 AND user_id = $2")
+			.bind(id)
+			.bind(user_id)
+			.fetch_optional(self.pool)
+			.await?;
+
+		Ok(todo)
+	}
+
 	pub async fn list_for_user(&self, user_id: i64) -> AppResult<Vec<Todo>> {
 		let todos = sqlx::query_as::<_, Todo>("SELECT * FROM todos WHERE user_id = $1 ORDER BY created_at DESC")
 			.bind(user_id)
@@ -37,5 +47,15 @@ impl<'a> TodoRepository<'a> {
 			.await?;
 
 		Ok(todos)
+	}
+
+	pub async fn delete(&self, id: i64, user_id: i64) -> AppResult<u64> {
+		let result = sqlx::query("DELETE FROM todos WHERE id = $1 AND user_id = $2")
+			.bind(id)
+			.bind(user_id)
+			.execute(self.pool)
+			.await?;
+
+		Ok(result.rows_affected())
 	}
 }
