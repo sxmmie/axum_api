@@ -11,6 +11,7 @@ mod dto;
 mod error;
 mod models;
 mod repositories;
+mod routes;
 mod services;
 mod state;
 
