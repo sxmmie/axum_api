@@ -15,8 +15,14 @@ impl<'a> TodoService<'a> {
 		Self { repo: TodoRepository::new(pool) }
 	}
 
-	pub async fn create(&self, user_id: i64, req: CreateTodoRequest) -> AppResult<TodoResponse> {
+	pub async fn create_todo(&self, user_id: i64, req: CreateTodoRequest) -> AppResult<TodoResponse> {
 		let todo = self.repo.create(user_id, &req.title, &req.description).await?;
+
+		Ok(todo.into())
+	}
+
+	pub async fn get(&self, id: i64, user_id: i64) -> AppResult<TodoResponse> {
+		let todo = self.repo.find_by_id(id, user_id).await?.ok_or(AppError::NotFound);
 
 		Ok(todo.into())
 	}
