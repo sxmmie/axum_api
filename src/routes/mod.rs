@@ -1,3 +1,11 @@
-pub fn all_routes() -> Router<Arc<AppState>> {
-	Router::new().merge(users::router()).merge(todos::router()).merge(auth::router())
+use axum::Router;
+
+use crate::state::SharedState;
+
+mod auth;
+mod todos;
+mod users;
+
+pub fn all_routes() -> Router<SharedState> {
+	Router::new().merge(users::routes()).merge(todos::routes()).merge(auth::routes())
 }
