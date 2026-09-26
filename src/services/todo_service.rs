@@ -26,4 +26,10 @@ impl<'a> TodoService<'a> {
 
 		Ok(todo.into())
 	}
+
+	pub async fn list(&self, user_id: i64) -> AppResult<Vec<TodoResponse>> {
+		let todos = self.repo.list_for_user(user_id).await?;
+
+		Ok(todos.into_iter().map(Into::into).collect())
+	}
 }
