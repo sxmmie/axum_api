@@ -7,7 +7,7 @@ use axum::{
 use serde_json::json;
 
 #[derive(Debug, thiserror::Error)]
-enum AppError {
+pub enum AppError {
 	#[error("resource not found")]
 	NotFound,
 
