@@ -9,6 +9,7 @@ use crate::{config::Config, state::AppState};
 mod config;
 mod dto;
 mod error;
+mod extractors;
 mod models;
 mod repositories;
 mod routes;
