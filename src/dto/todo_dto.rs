@@ -7,30 +7,28 @@ use crate::models::todo::Todo;
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateTodoRequest {
 	#[validate(length(min = 1, max = 200))]
-	title: String,
+	pub title: String,
 	#[validate(length(max = 2000))]
-	description: String,
+	pub description: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct UpdateTodoRequest {
 	#[validate(length(min = 1, max = 200))]
 	pub title: Option<String>,
-
 	#[validate(length(max = 2000))]
-	description: Option<String>,
-
-	completed: Option<bool>,
+	pub description: Option<String>,
+	pub completed: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct TodoResponse {
-	id: i64,
-	title: String,
-	description: String,
-	completed: bool,
-	created_at: DateTime<Utc>,
-	updated_at: DateTime<Utc>,
+	pub id: i64,
+	pub title: String,
+	pub description: String,
+	pub completed: bool,
+	pub created_at: DateTime<Utc>,
+	pub updated_at: DateTime<Utc>,
 }
 
 impl From<Todo> for TodoResponse {

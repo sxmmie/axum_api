@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use sqlx::{PgPool, database, postgres::PgPoolOptions};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use tokio::signal;
 use tower_http::trace::TraceLayer;
 
