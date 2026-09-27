@@ -1,10 +1,7 @@
 // use anyhow::Ok;
 use sqlx::PgPool;
 
-use crate::{
-	error::AppResult,
-	models::{todo::Todo, user},
-};
+use crate::{error::AppResult, models::todo::Todo};
 
 pub struct TodoRepository<'a> {
 	pool: &'a PgPool,
@@ -48,6 +45,8 @@ impl<'a> TodoRepository<'a> {
 
 		Ok(todos)
 	}
+
+	pub async fn update_todo(&self, user_id: i64, id: i64) -> AppResult<Todo> {}
 
 	pub async fn delete(&self, id: i64, user_id: i64) -> AppResult<u64> {
 		let result = sqlx::query("DELETE FROM todos WHERE id = $1 AND user_id = $2")
