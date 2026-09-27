@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use crate::{
-	dto::todo_dto::{CreateTodoRequest, TodoResponse},
+	dto::todo_dto::{CreateTodoRequest, TodoResponse, UpdateTodoRequest},
 	error::{AppError, AppResult},
 	repositories::todo_repo::TodoRepository,
 };
@@ -20,6 +20,8 @@ impl<'a> TodoService<'a> {
 
 		Ok(todo.into())
 	}
+
+	pub async fn update_todo(&self, user_id: i64, req: UpdateTodoRequest) -> AppResult<TodoResponse> {}
 
 	pub async fn get(&self, id: i64, user_id: i64) -> AppResult<TodoResponse> {
 		let todo = self.repo.find_by_id(id, user_id).await?.ok_or(AppError::NotFound)?;
