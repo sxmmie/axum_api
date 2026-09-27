@@ -46,7 +46,28 @@ impl<'a> TodoRepository<'a> {
 		Ok(todos)
 	}
 
-	pub async fn update_todo(&self, user_id: i64, id: i64) -> AppResult<Todo> {}
+	pub async fn update(&self, user_id: i64, id: i64, title: Option<String>, description: Option<String>, completed: Option<bool>) -> AppResult<Option<Todo>> {
+		let todo = sqlx::query_as::<_, Todo>(
+			r#"
+            UPDATE todos
+            SET
+                title       = COALESCE($3, title),
+                description = COALESCE($4, description),
+                completed   = COALESCE($5, completed)
+            WHERE id = $1 AND user_id = $2
+            RETURNING id, user_id, title, description, completed, created_at, updated_at
+            "#,
+		)
+		.bind(id)
+		.bind(user_id)
+		.bind(title)
+		.bind(description)
+		.bind(completed)
+		.fetch_optional(self.pool)
+		.await?;
+
+		Ok(todo)
+	}
 
 	pub async fn delete(&self, id: i64, user_id: i64) -> AppResult<u64> {
 		let result = sqlx::query("DELETE FROM todos WHERE id = $1 AND user_id = $2")
