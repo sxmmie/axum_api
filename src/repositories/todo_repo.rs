@@ -46,7 +46,7 @@ impl<'a> TodoRepository<'a> {
 		Ok(todos)
 	}
 
-	pub async fn update(&self, user_id: i64, id: i64, title: Option<String>, description: Option<String>, completed: Option<bool>) -> AppResult<Option<Todo>> {
+	pub async fn update(&self, id: i64, user_id: i64, title: Option<String>, description: Option<String>, completed: Option<bool>) -> AppResult<Option<Todo>> {
 		let todo = sqlx::query_as::<_, Todo>(
 			r#"
             UPDATE todos
