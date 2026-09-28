@@ -1,6 +1,15 @@
-use axum::{Json, Router, extract::State, routing::get};
+use axum::{
+	Json, Router,
+	extract::{Path, State},
+	routing::get,
+};
+use validator::Validate;
 
-use crate::{dto::todo_dto::CreateTodoRequest, error::AppResult, state::SharedState};
+use crate::{dto::todo_dto::CreateTodoRequest, error::AppResult, services::todo_service::TodoService, state::SharedState};
+use crate::{
+	dto::todo_dto::{TodoResponse, UpdateTodoRequest},
+	error::AppError,
+};
 
 // AuthUser is a custom extractor pulling user_id out of the JWT — see extractors/auth_user.rs
 use crate::extractors::auth_user::AuthUser;
@@ -18,3 +27,12 @@ async fn create_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUs
 }
 
 async fn list_todos(State(state): State<SharedState>, AuthUser(user_id): AuthUser) -> AppResult<Json<Vec<crate::dto::todo_dto::TodoResponse>>> {}
+
+async fn update_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>, Json(payload): Json<UpdateTodoRequest>) -> AppResult<Json<TodoResponse>> {
+	payload.validate().map_err(|e| AppError::Validation(e.to_string()))?;
+
+	let service = TodoService::new(&state.db_pool);
+	let todo = service.update(id, user_id, payload).await?;
+
+	Ok(Json(todo))
+}
