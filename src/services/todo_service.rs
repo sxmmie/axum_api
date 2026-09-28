@@ -1,7 +1,10 @@
 use sqlx::PgPool;
 
 use crate::{
-	dto::todo_dto::{CreateTodoRequest, TodoResponse, UpdateTodoRequest}, error::{AppError, AppResult}, models::todo, repositories::todo_repo::TodoRepository
+	dto::todo_dto::{CreateTodoRequest, TodoResponse, UpdateTodoRequest},
+	error::{AppError, AppResult},
+	models::todo,
+	repositories::todo_repo::TodoRepository,
 };
 
 pub struct TodoService<'a> {
@@ -19,12 +22,12 @@ impl<'a> TodoService<'a> {
 		Ok(todo.into())
 	}
 
-	pub async fn update_todo(&self, user_id: i64, req: UpdateTodoRequest) -> AppResult<TodoResponse> {
+	pub async fn update_todo(&self, id: i64, user_id: i64, req: UpdateTodoRequest) -> AppResult<TodoResponse> {
 		if req.title.is_none() && req.description.is_none() && req.completed.is_none() {
-			return Err(AppErr.Validation("at least one field must be provided".into()));
+			return Err(AppError::Validation("at least one field must be provided".into()));
 		}
 
-		let todo = self.update(user_id, req.description, req.completed).await.ok_or(AppError::NotFound)
+		let todo = self.repo.update(id, user_id, req.title, req.description, req.completed).await?.ok_or(AppError::NotFound)?;
 
 		// let todo = self.update_todo(user_id, req.)
 		Ok(todo.into())
