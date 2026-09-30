@@ -1,3 +1,5 @@
+use std::os::macos::raw::stat;
+
 use axum::{
 	Json, Router,
 	extract::{Path, State},
@@ -22,23 +24,38 @@ use crate::extractors::auth_user::AuthUser;
 
 pub fn routes() -> Router<SharedState> {
 	Router::new()
-		.route("/todos", get(list_todos), post(create_todo))
-		.route("/todos/:id", get(get_todo), put(update_todo), delete(delete_todo))
+		.route("/todos", get(list_todos).post(create_todo))
+		.route("/todos/:id", get(get_todo).patch(update_todo).delete(delete_todo))
 }
 
-async fn create_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Json(payload): CreateTodoRequest) -> AppResult<Json<crate::dto::todo_dto::TodoResponse>> {
-	// use validate::Validator;
-	//
-	// payload.va
+async fn create_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Json(payload): Json<CreateTodoRequest>) -> AppResult<Json<TodoResponse>> {
+	payload.validate().map_err(|e| AppError::Validation(e.to_string()))?;
+
+	let service = TodoService::new(&state.db_pool);
+	let todo = service.create_todo(user_id, payload).await?;
+
+	Ok(Json(todo))
 }
 
-async fn list_todos(State(state): State<SharedState>, AuthUser(user_id): AuthUser) -> AppResult<Json<Vec<crate::dto::todo_dto::TodoResponse>>> {}
+async fn list_todos(State(state): State<SharedState>, AuthUser(user_id): AuthUser) -> AppResult<Json<Vec<TodoResponse>>> {
+	let service = TodoService::new(&state.db_pool);
+	let todos = service.list(user_id).await?;
+
+	Ok(Json(todos))
+}
 
 async fn update_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>, Json(payload): Json<UpdateTodoRequest>) -> AppResult<Json<TodoResponse>> {
 	payload.validate().map_err(|e| AppError::Validation(e.to_string()))?;
 
 	let service = TodoService::new(&state.db_pool);
 	let todo = service.update(id, user_id, payload).await?;
+
+	Ok(Json(todo))
+}
+
+async fn get_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>) -> AppResult<Json<TodoResponse>> {
+	let service = TodoService::new(&state.db_pool);
+	let todo = service.get(id, user_id).await?;
 
 	Ok(Json(todo))
 }
