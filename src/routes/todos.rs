@@ -1,11 +1,17 @@
 use axum::{
 	Json, Router,
 	extract::{Path, State},
+	http::StatusCode,
 	routing::get,
 };
 use validator::Validate;
 
-use crate::{dto::todo_dto::CreateTodoRequest, error::AppResult, services::todo_service::TodoService, state::SharedState};
+use crate::{
+	dto::todo_dto::CreateTodoRequest,
+	error::AppResult,
+	services::{self, todo_service::TodoService},
+	state::SharedState,
+};
 use crate::{
 	dto::todo_dto::{TodoResponse, UpdateTodoRequest},
 	error::AppError,
@@ -35,4 +41,11 @@ async fn update_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUs
 	let todo = service.update(id, user_id, payload).await?;
 
 	Ok(Json(todo))
+}
+
+async fn delete_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>) -> AppResult<StatusCode> {
+	let service = TodoService::new(&state.db_pool);
+	service.delete(id, user_id).await?;
+
+	Ok(StatusCode::NO_CONTENT)
 }
