@@ -4,9 +4,9 @@ use sqlx::prelude::FromRow;
 
 #[derive(Debug, Clone, Serialize, FromRow)]
 pub struct User {
-	id: i64,
-	name: String,
-	email: String,
-	created_at: DateTime<Utc>,
-	updated_at: DateTime<Utc>,
+	pub id: i64,
+	pub name: String,
+	pub email: String,
+	pub created_at: DateTime<Utc>,
+	pub updated_at: DateTime<Utc>,
 }
