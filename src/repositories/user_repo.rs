@@ -2,8 +2,8 @@ use sqlx::PgPool;
 
 use crate::{error::{AppError, AppResult}, models::user::{self, User}};
 
-pub struct UserRepository {
-	pool: &'a PgPool,
+pub struct UserRepository<'a> {
+    pool: &'a PgPool,
 }
 
 impl<'a> UserRepository<'a> {
@@ -38,11 +38,12 @@ impl<'a> UserRepository<'a> {
 		Ok(user)
 	}
 
-	pub async fn find_by_id(self, id: i64) ->  AppResult<Option<User>> {
+	pub async fn find_by_id(&self, id: i64) ->  AppResult<Option<User>> {
 	    let user = sqlx::query_as::<_, User>("SELECT id, name, email, password_hash, created_at, updated_at FROM users WHERE id = $1",)
-			.bind(self)
-			.fetch_optional(self.pool).await?;
+			.bind(id)
+			.fetch_optional(self.pool)
+			.await?;
 
-		Ok(user);
+		Ok(user)
 	}
 }
