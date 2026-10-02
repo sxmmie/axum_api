@@ -12,7 +12,7 @@ impl Claims {
 		let now = chrono::Utc::now();
 		Self {
 			sub: user_id.to_string(),
-			exp: (now + chrono::Duration::seconds(ttl_seconds).timestamp() as usize),
+			exp: (now + chrono::Duration::seconds(ttl_seconds)).timestamp() as usize,
 			iat: now.timestamp() as usize,
 		}
 	}
