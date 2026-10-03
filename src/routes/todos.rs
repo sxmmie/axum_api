@@ -18,7 +18,7 @@ use crate::extractors::auth_user::AuthUser;
 pub fn routes() -> Router<SharedState> {
 	Router::new()
 		.route("/todos", get(list_todos).post(create_todo))
-		.route("/todos/:id", get(get_todo).patch(update_todo).delete(delete_todo))
+		.route("/todos/{id}", get(get_todo).patch(update_todo).delete(delete_todo))
 }
 
 async fn create_todo(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Json(payload): Json<CreateTodoRequest>) -> AppResult<Json<TodoResponse>> {

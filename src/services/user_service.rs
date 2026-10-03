@@ -44,7 +44,6 @@ impl<'a> UserService<'a> {
 	}
 
 	pub async fn login(&self, req: LoginRequest) -> AppResult<AuthResponse> {
-		// let user = self.repo.find_by_email(&req.email).await?.ok_or(AppError::Unauthorized)?;
 		let user = self
 			.repo
 			.find_by_email(&req.email)
@@ -67,7 +66,7 @@ impl<'a> UserService<'a> {
 	pub async fn get_profile(&self, user_id: i64) -> AppResult<User> {
 		let user = self.repo.find_by_id(user_id).await?.ok_or(AppError::NotFound)?;
 
-		Ok(user.into())
+		Ok(user)
 	}
 
 	fn issue_token(&self, user_id: i64) -> AppResult<String> {

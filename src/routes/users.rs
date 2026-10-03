@@ -1,12 +1,14 @@
-use crate::AppState;
-use crate::handlers::users::{create, destroy, list, show, update};
-use axum::Router;
-use axum::http::Method;
-use axum::routing::{delete, get, post, put};
-use std::sync::Arc;
+use axum::{Json, Router, extract::State, routing::get};
 
-pub fn router() -> Router<Arc<AppState>> {
-	Router::new()
-		.route("/users", get(list).post(create))
-		.route("/user/{id}", get(show).put(update).delete(destroy))
+use crate::{dto::user_dto::UserResponse, error::AppResult, extractors::auth_user::AuthUser, services::user_service::UserService, state::SharedState};
+
+pub fn routes() -> Router<SharedState> {
+	Router::new().route("/users/me", get(me))
+}
+
+async fn me(State(state): State<SharedState>, AuthUser(user_id): AuthUser) -> AppResult<Json<UserResponse>> {
+	let service = UserService::new(&state.db_pool, &state.config.jwt_secret);
+	let user = service.get_profile(user_id).await?;
+
+	Ok(Json(user.into()))
 }

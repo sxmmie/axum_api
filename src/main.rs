@@ -31,7 +31,7 @@ async fn main() {
 	let app = routes::all_routes().with_state(state).layer(TraceLayer::new_for_http());
 
 	// HTTP server setup
-	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:3000")).await.unwrap();
+	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
 
 	tracing::info!("Listening on 0.0.0.0:{port}");
 

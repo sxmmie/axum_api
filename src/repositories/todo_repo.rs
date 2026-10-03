@@ -28,7 +28,7 @@ impl<'a> TodoRepository<'a> {
 	}
 
 	pub async fn find_by_id(&self, id: i64, user_id: i64) -> AppResult<Option<Todo>> {
-		let todo = sqlx::query_as::<_, Todo>("SELECL * FROM users WHERE id = $1 AND user_id = $2")
+		let todo = sqlx::query_as::<_, Todo>("SELECT * FROM users WHERE id = $1 AND user_id = $2")
 			.bind(id)
 			.bind(user_id)
 			.fetch_optional(self.pool)
