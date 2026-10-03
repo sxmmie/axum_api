@@ -44,13 +44,20 @@ impl<'a> UserService<'a> {
 	}
 
 	pub async fn login(&self, req: LoginRequest) -> AppResult<AuthResponse> {
-		let user = self.repo.find_by_email(&req.email).await?.ok_or(AppError::Unauthorized)?;
+		// let user = self.repo.find_by_email(&req.email).await?.ok_or(AppError::Unauthorized)?;
+		let user = self
+			.repo
+			.find_by_email(&req.email)
+			.await?
+			// Deliberately the same error for "no such user" and "wrong password" below — don't let the API confirm which emails
+			// are registered via response differences (user enumeration).
+			.ok_or(AppError::Unauthorized)?;
 
 		let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| AppError::Internal(anyhow::anyhow!("stored hash unavailable: {e}")))?;
 
 		Argon2::default()
-			.verify_password(req.password.as_bytes(), parsed_hash)
-			.map_err(|e| AppError::Unauthorized)?;
+			.verify_password(req.password.as_bytes(), &parsed_hash)
+			.map_err(|_| AppError::Unauthorized)?;
 
 		let token = self.issue_token(user.id)?;
 
