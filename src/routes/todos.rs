@@ -1,5 +1,3 @@
-use std::os::macos::raw::stat;
-
 use axum::{
 	Json, Router,
 	extract::{Path, State},
@@ -8,12 +6,7 @@ use axum::{
 };
 use validator::Validate;
 
-use crate::{
-	dto::todo_dto::CreateTodoRequest,
-	error::AppResult,
-	services::{self, todo_service::TodoService},
-	state::SharedState,
-};
+use crate::{dto::todo_dto::CreateTodoRequest, error::AppResult, services::todo_service::TodoService, state::SharedState};
 use crate::{
 	dto::todo_dto::{TodoResponse, UpdateTodoRequest},
 	error::AppError,
