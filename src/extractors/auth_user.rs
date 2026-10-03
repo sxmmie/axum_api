@@ -1,11 +1,11 @@
 use axum::{
+	Json,
 	extract::FromRequestParts,
 	http::{StatusCode, header, request::Parts},
 	response::{IntoResponse, Response},
 };
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde_json::json;
-use sqlx::types::Json;
 
 use crate::{services::jwt::Claims, state::SharedState};
 
@@ -37,9 +37,9 @@ impl FromRequestParts<SharedState> for AuthUser {
 
 		let token = header_value.strip_prefix("Bearer ").ok_or(AuthError::MissingToken)?;
 
-		let data = decode::<Claims>(token, &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()), &Validation::default()).map_err(|_| AuthError::InvalidToken);
+		let data = decode::<Claims>(token, &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()), &Validation::default()).map_err(|_| AuthError::InvalidToken)?;
 
-		let user_id = data.claims.user_iid().ok_or(AuthError::InvalidToken)?;
+		let user_id = data.claims.user_id().ok_or(AuthError::InvalidToken)?;
 
 		Ok(AuthUser(user_id))
 	}

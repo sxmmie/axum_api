@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use crate::{
 	error::{AppError, AppResult},
-	models::user::{self, User},
+	models::user::User,
 };
 
 pub struct UserRepository<'a> {
@@ -21,7 +21,7 @@ impl<'a> UserRepository<'a> {
 				.bind(email)
 				.bind(password_hash)
 				.fetch_one(self.pool)
-				.await?;
+				.await;
 
 		match result {
 			Ok(user) => Ok(user),
@@ -32,7 +32,7 @@ impl<'a> UserRepository<'a> {
 		}
 	}
 
-	pub async fn find_by_email(self, email: &str) -> AppResult<Option<User>> {
+	pub async fn find_by_email(&self, email: &str) -> AppResult<Option<User>> {
 		let user = sqlx::query_as::<_, User>("SELECT id, name, email, password_hash, created_at, updated_at FROM users WHERE lower(email) = lower($1)")
 			.bind(email)
 			.fetch_optional(self.pool)
