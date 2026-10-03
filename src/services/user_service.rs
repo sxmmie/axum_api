@@ -1,12 +1,12 @@
 use argon2::{
-	Argon2, PasswordHasher,
+	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 	password_hash::{SaltString, rand_core::OsRng},
 };
 use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::PgPool;
 
 use crate::{
-	dto::user_dto::{AuthResponse, RegisterRequest},
+	dto::user_dto::{AuthResponse, LoginRequest, RegisterRequest},
 	error::{AppError, AppResult},
 	models::user::User,
 	repositories::user_repo::UserRepository,
@@ -38,6 +38,20 @@ impl<'a> UserService<'a> {
 			.to_string();
 
 		let user = self.repo.create(&req.name, &req.email, &password_hash).await?;
+		let token = self.issue_token(user.id)?;
+
+		Ok(AuthResponse { token, user: user.into() })
+	}
+
+	pub async fn login(&self, req: LoginRequest) -> AppResult<AuthResponse> {
+		let user = self.repo.find_by_email(&req.email).await?.ok_or(AppError::Unauthorized)?;
+
+		let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|e| AppError::Internal(anyhow::anyhow!("stored hash unavailable: {e}")))?;
+
+		Argon2::default()
+			.verify_password(req.password.as_bytes(), parsed_hash)
+			.map_err(|e| AppError::Unauthorized)?;
+
 		let token = self.issue_token(user.id)?;
 
 		Ok(AuthResponse { token, user: user.into() })
