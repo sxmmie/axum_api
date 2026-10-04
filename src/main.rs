@@ -10,6 +10,7 @@ mod config;
 mod dto;
 mod error;
 mod extractors;
+mod middleware;
 mod models;
 mod repositories;
 mod routes;
