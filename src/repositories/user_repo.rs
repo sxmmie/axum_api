@@ -46,6 +46,26 @@ impl<'a> UserRepository<'a> {
 		.await?)
 	}
 
+	pub async fn update(&self, id: i64, name: Option<&str>, email: Option<&str>, password_hash: Option<&str>) -> AppResult<Option<User>> {
+		Self::map_conflict(
+			sqlx::query!(
+				User,
+				r#"UPDATE users
+    					SET name = COALESCE($2::text, name),
+    						 email = COALESCE($3::text, email),
+    						 password_hash = COALESCE($4::text, password_hash)
+    				 WHERE id = $1
+    				 RETURNING id, name, email, password_hash, created_at, updated_at"#,
+				id,
+				name,
+				email,
+				password_hash
+			)
+			.fetch_optional(self.pool)
+			.await,
+		)
+	}
+
 	pub async fn find_by_email(&self, email: &str) -> AppResult<Option<User>> {
 		let user = sqlx::query_as::<_, User>("SELECT id, name, email, password_hash, created_at, updated_at FROM users WHERE lower(email) = lower($1)")
 			.bind(email)
