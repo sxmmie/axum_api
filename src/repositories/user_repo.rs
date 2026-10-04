@@ -1,6 +1,8 @@
+use chrono::offset;
 use sqlx::PgPool;
 
 use crate::{
+	dto::user_dto::UserResponse,
 	error::{AppError, AppResult},
 	models::user::User,
 };
@@ -30,6 +32,18 @@ impl<'a> UserRepository<'a> {
 			Err(sqlx::Error::Database(db_err)) if db_err.code().as_deref() == Some("23505") => Err(AppError::Conflict("email already in use".into())),
 			Err(e) => Err(AppError::Database(e)),
 		}
+	}
+
+	// Maps directly into UserResponse — password_hash never leaves the repo layer.
+	pub async fn find_all(&self, limit: i64, offset: i64) -> AppResult<Vec<UserResponse>> {
+		Ok(sqlx::query_as!(
+			UserResponse,
+			"SELECT id, name, email, created_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+			limit,
+			offset
+		)
+		.fetch_all(self.pool)
+		.await?)
 	}
 
 	pub async fn find_by_email(&self, email: &str) -> AppResult<Option<User>> {
