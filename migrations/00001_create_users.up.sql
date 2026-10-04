@@ -12,8 +12,7 @@ CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL,
-    passwordhash TEXT NOT NULL,
-    description TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -27,4 +26,4 @@ CREATE UNIQUE INDEX users_email_unique_idx ON users (lower(email));
 CREATE TRIGGER users_set_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
-    EXECUTE FUNCTION set_updated_at()
+    EXECUTE FUNCTION set_updated_at();
