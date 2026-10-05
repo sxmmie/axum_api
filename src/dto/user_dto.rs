@@ -29,6 +29,18 @@ pub struct LoginRequest {
 	pub password: String,
 }
 
+#[derive(Debug, Deserialize, Validate)]
+pub struct UpdateUserRequest {
+	#[validate(length(min = 1, max = 100))]
+	pub name: Option<String>,
+
+	#[validate(email)]
+	pub email: Option<String>,
+
+	#[validate(length(min = 8, max = 256))]
+	pub password: Option<String>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
 	pub id: i64,
@@ -52,4 +64,21 @@ impl From<User> for UserResponse {
 pub struct AuthResponse {
 	pub token: String,
 	pub user: UserResponse,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Pagination {
+	pub limit: Option<i64>,
+	pub offset: Option<i64>,
+}
+
+impl Pagination {
+	// Clamped rather than validated: an oversized page is a server-protection issue, not a user error.
+	pub fn limit(&self) -> i64 {
+		self.limit.unwrap_or(20).clamp(1, 100)
+	}
+
+	pub fn offset(&self) -> i64 {
+		self.offset.unwrap_or(0).max(0)
+	}
 }
