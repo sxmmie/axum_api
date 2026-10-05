@@ -29,6 +29,7 @@ impl Config {
 
 		Ok(Config {
 			database_url: env::var("DATABASE_URL").map_err(|_| ConfigError::Missing("DATABASE_URL"))?,
+			redis_url: env::var("REDIS_URL").map_err(|_| ConfigError::Missing("REDIS_URL"))?,
 			server_port: env::var("PORT").unwrap_or_else(|_| "3000".into()).parse().map_err(|_| ConfigError::Invalid("PORT"))?,
 			jwt_secret: env::var("JWT_SECRET").map_err(|_| ConfigError::Missing("JWT_SECRET"))?,
 			environment: match env::var("APP_ENV").as_deref() {
