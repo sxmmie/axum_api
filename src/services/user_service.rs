@@ -1,12 +1,12 @@
 use argon2::{
 	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-	password_hash::{SaltString, rand_core::OsRng},
+	password_hash::{self, SaltString, rand_core::OsRng},
 };
 use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::PgPool;
 
 use crate::{
-	dto::user_dto::{AuthResponse, LoginRequest, RegisterRequest},
+	dto::user_dto::{AuthResponse, LoginRequest, Pagination, RegisterRequest, UserResponse},
 	error::{AppError, AppResult},
 	models::user::User,
 	repositories::user_repo::UserRepository,
@@ -29,18 +29,15 @@ impl<'a> UserService<'a> {
 	}
 
 	pub async fn register(&self, req: RegisterRequest) -> AppResult<AuthResponse> {
-		let salt = SaltString::generate(&mut OsRng);
-		let argon2 = Argon2::default();
-
-		let password_hash = argon2
-			.hash_password(req.password.as_bytes(), &salt)
-			.map_err(|e| AppError::Internal(anyhow::anyhow!("password hashing failed: {e}")))? // Hashing itself only fails on malformed input params, not user-controllable data — treat as an internal error.
-			.to_string();
-
+		let password_hash = Self::hash_password(&req.password)?;
 		let user = self.repo.create(&req.name, &req.email, &password_hash).await?;
 		let token = self.issue_token(user.id)?;
 
 		Ok(AuthResponse { token, user: user.into() })
+	}
+
+	pub async fn list(&self, page: Pagination) -> AppResult<Vec<UserResponse>> {
+		self.repo.find_all(page.limit(), page.offset()).await
 	}
 
 	pub async fn login(&self, req: LoginRequest) -> AppResult<AuthResponse> {
@@ -72,5 +69,13 @@ impl<'a> UserService<'a> {
 	fn issue_token(&self, user_id: i64) -> AppResult<String> {
 		let claims = Claims::new(user_id, ACCESS_TOKEN_TTL_SESSION);
 		encode(&Header::default(), &claims, &EncodingKey::from_secret(self.jwt_secret.as_bytes())).map_err(|e| AppError::Internal(anyhow::anyhow!("token signing failed: {e}")))
+	}
+
+	fn hash_password(password: &str) -> AppResult<String> {
+		let salt = SaltString::generate(&mut OsRng);
+		Argon2::default()
+			.hash_password(password.as_bytes(), &salt)
+			.map_err(|e| AppError::Internal(anyhow::anyhow!("passwrod hashing failed: {e}")))
+			.map(|h| h.to_string())
 	}
 }
