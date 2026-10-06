@@ -6,7 +6,7 @@ use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::PgPool;
 
 use crate::{
-	dto::user_dto::{AuthResponse, LoginRequest, Pagination, RegisterRequest, UserResponse},
+	dto::user_dto::{AuthResponse, LoginRequest, Pagination, RegisterRequest, UpdateUserRequest, UserResponse},
 	error::{AppError, AppResult},
 	models::user::User,
 	repositories::user_repo::UserRepository,
@@ -60,11 +60,39 @@ impl<'a> UserService<'a> {
 		Ok(AuthResponse { token, user: user.into() })
 	}
 
-	pub async fn get_profile(&self, user_id: i64) -> AppResult<User> {
-		let user = self.repo.find_by_id(user_id).await?.ok_or(AppError::NotFound)?;
+	pub async fn get_user(&self, actor_id: i64, target_id: i64) -> AppResult<UserResponse> {
+		if actor_id != target_id {
+			return Err(AppError::Forbidden);
+		}
 
-		Ok(user)
+		let user = self.repo.find_by_id(target_id).await?.ok_or(AppError::NotFound)?;
+
+		return Ok(user.into());
 	}
+
+	pub async fn update_user(&self, actor_id: i64, target_id: i64, req: UpdateUserRequest) -> AppResult<UserResponse> {
+		if actor_id != target_id {
+			return Err(AppError::Forbidden);
+		}
+		if req.name.is_none() && req.email.is_none() && req.password.is_none() {
+			return Err(AppError::Validation("at least one field must be provided".into()));
+		}
+
+		let password_hash = req.password.as_deref().map(Self::hash_password(password)).transpose()?;
+		let user = self
+			.repo
+			.update(target_id, req.name.as_deref(), req.email.as_deref(), password_hash.as_deref())
+			.await?
+			.ok_or(AppError::NotFound);
+
+		Ok(user.into());
+	}
+
+	// 	pub async fn get_profile(&self, user_id: i64) -> AppResult<User> {
+	// 		let user = self.repo.find_by_id(user_id).await?.ok_or(AppError::NotFound)?;
+	//
+	// 		Ok(user)
+	// 	}
 
 	fn issue_token(&self, user_id: i64) -> AppResult<String> {
 		let claims = Claims::new(user_id, ACCESS_TOKEN_TTL_SESSION);
