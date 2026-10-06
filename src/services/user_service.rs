@@ -74,6 +74,7 @@ impl<'a> UserService<'a> {
 		if actor_id != target_id {
 			return Err(AppError::Forbidden);
 		}
+
 		if req.name.is_none() && req.email.is_none() && req.password.is_none() {
 			return Err(AppError::Validation("at least one field must be provided".into()));
 		}
