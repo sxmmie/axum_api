@@ -89,6 +89,18 @@ impl<'a> UserService<'a> {
 		Ok(user.into());
 	}
 
+	pub async fn delete(&self, user_id: i64, id: i64) -> AppResult<()> {
+		if user_id != id {
+			return Err(AppError::Forbidden);
+		}
+
+		if self.repo.delete(id).await? == 0 {
+			return Err(AppError::NotFound);
+		}
+
+		Ok(())
+	}
+
 	// 	pub async fn get_profile(&self, user_id: i64) -> AppResult<User> {
 	// 		let user = self.repo.find_by_id(user_id).await?.ok_or(AppError::NotFound)?;
 	//
