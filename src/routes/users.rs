@@ -1,7 +1,5 @@
 use axum::{
-	Json, Router,
-	extract::{Path, State},
-	routing::get,
+	Json, Router, extract::{Path, State}, http::StatusCode, routing::get
 };
 use sqlx::{query::Query, types::Json};
 use validator::Validate;
@@ -10,7 +8,7 @@ use crate::{
 	dto::user_dto::{Pagination, UpdateUserRequest, UserResponse},
 	error::{AppError, AppResult},
 	extractors::auth_user::AuthUser,
-	services::user_service::UserService,
+	service::{self, user_service::UserService},
 	state::SharedState,
 };
 
@@ -46,4 +44,10 @@ async fn update(State(state): State<SharedState>, AuthUser(user_id): AuthUser, P
 	let service = UserService::new(&state.db_pool, &state.config.jwt_secret);
 
 	Ok(Json(service.update_user(user_id, id, payload).await?)); // Ok(Json(service.update_user(actor_id, target_id, payload).await?));
+}
+
+async fn destroy(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>) -> AppResult<StatusCode> {
+    let service = UserService::new(&state.db_pool, &state.config.jwt_secret);
+    let service
+    Ok(StatusCode::NO_CONTENT)
 }
