@@ -1,5 +1,8 @@
 use axum::{
-	Json, Router, extract::{Path, State}, http::StatusCode, routing::get
+	Json, Router,
+	extract::{Path, State},
+	http::StatusCode,
+	routing::get,
 };
 use sqlx::{query::Query, types::Json};
 use validator::Validate;
@@ -47,7 +50,8 @@ async fn update(State(state): State<SharedState>, AuthUser(user_id): AuthUser, P
 }
 
 async fn destroy(State(state): State<SharedState>, AuthUser(user_id): AuthUser, Path(id): Path<i64>) -> AppResult<StatusCode> {
-    let service = UserService::new(&state.db_pool, &state.config.jwt_secret);
-    let service
-    Ok(StatusCode::NO_CONTENT)
+	let service = UserService::new(&state.db_pool, &state.config.jwt_secret);
+	service.delete(user_id, id).await?;
+
+	Ok(StatusCode::NO_CONTENT)
 }
