@@ -70,23 +70,22 @@ impl<'a> UserService<'a> {
 		return Ok(user.into());
 	}
 
-	pub async fn update_user(&self, actor_id: i64, target_id: i64, req: UpdateUserRequest) -> AppResult<UserResponse> {
+	pub async fn update(&self, actor_id: i64, target_id: i64, req: UpdateUserRequest) -> AppResult<UserResponse> {
 		if actor_id != target_id {
 			return Err(AppError::Forbidden);
 		}
-
 		if req.name.is_none() && req.email.is_none() && req.password.is_none() {
 			return Err(AppError::Validation("at least one field must be provided".into()));
 		}
 
-		let password_hash = req.password.as_deref().map(Self::hash_password(password)).transpose()?;
+		let password_hash = req.password.as_deref().map(Self::hash_password).transpose()?;
 		let user = self
 			.repo
 			.update(target_id, req.name.as_deref(), req.email.as_deref(), password_hash.as_deref())
 			.await?
-			.ok_or(AppError::NotFound);
+			.ok_or(AppError::NotFound)?;
 
-		Ok(user.into());
+		Ok(user.into())
 	}
 
 	pub async fn delete(&self, user_id: i64, id: i64) -> AppResult<()> {
