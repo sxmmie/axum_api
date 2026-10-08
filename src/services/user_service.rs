@@ -88,12 +88,12 @@ impl<'a> UserService<'a> {
 		Ok(user.into())
 	}
 
-	pub async fn delete(&self, user_id: i64, id: i64) -> AppResult<()> {
-		if user_id != id {
+	pub async fn delete(&self, actor_id: i64, target_id: i64) -> AppResult<()> {
+		if actor_id != target_id {
 			return Err(AppError::Forbidden);
 		}
 
-		if self.repo.delete(id).await? == 0 {
+		if self.repo.delete(target_id).await? == 0 {
 			return Err(AppError::NotFound);
 		}
 
