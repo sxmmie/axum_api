@@ -92,4 +92,8 @@ impl<'a> UserRepository<'a> {
 
 		Ok(user)
 	}
+
+	pub async fn delete(&self, id: i64) -> AppResult<u64> {
+		Ok(sqlx::query!("DELETE FROM users WHERE id = $1", id).execute(self.pool).await?.rows_affected())
+	}
 }
