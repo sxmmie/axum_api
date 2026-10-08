@@ -16,6 +16,15 @@ impl<'a> UserRepository<'a> {
 		Self { pool }
 	}
 
+	// One mapping point for unique violations: create and update can both hit 23505 on the lower(email) index
+	pub async fn map_conflict<T>(result: Result<T, sqlx::Error>) -> AppResult<T> {
+		match result {
+			Ok(v) => Ok(v),
+			Err(sqlx::Error::Database(db_err)) if db_err.code().as_deref() == Some("23505") => Err(AppError::Conflict("email already in use".into())),
+			Err(e) => Err(AppError::Database(e)),
+		}
+	}
+
 	pub async fn create(&self, name: &str, email: &str, password_hash: &str) -> AppResult<User> {
 		let result =
 			sqlx::query_as::<_, User>(r#"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, password_hash, created_at, updated_at"#)

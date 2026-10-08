@@ -42,5 +42,5 @@ pub async fn rate_limit(State(state): State<SharedState>, ConnectInfo(addr): Con
 		}
 	}
 
-	next.run(req).await;
+	next.run(req).await
 }
