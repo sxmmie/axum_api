@@ -16,8 +16,8 @@ run: ## Run in dev mode
 watch: ## Auto-reload on change (requires cargo-watch)
 	cargo watch -x run
 
-build: ## Build the application
-	cargo build --release
+# build: ## Build the application
+# 	cargo build --release
 
 test: ## Run all tests
 	SQLX_OFFLINE=true cargo test -- --nocapture
@@ -41,7 +41,8 @@ docker-build: ## Build production image
 	docker build -t ${BINARY_NAME}:latest .
 
 docker-up: ## Start local stack (app + db) docker-compose services
-	docker-compose up -d --build
+	docker compose -f docker-compose.dev.yml up -d --build
+	# docker-compose up -d --build docker-compose.dev.yml
 
 docker-down: ## Stop local stack
 	docker-compose down
