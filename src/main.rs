@@ -16,6 +16,7 @@ mod repositories;
 mod routes;
 mod services;
 mod state;
+mod telemetry;
 
 #[tokio::main]
 async fn main() {
