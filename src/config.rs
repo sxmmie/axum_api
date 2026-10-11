@@ -23,6 +23,9 @@ pub enum ConfigError {
 	Invalid(&'static str),
 }
 
+pub otlp_endpoint: Option<String>,
+pub trace_sample_ratio: f64,
+
 impl Config {
 	pub fn from_env() -> Result<Self, ConfigError> {
 		dotenvy::dotenv().ok(); // no-op if .env absent (e.g. prod)
@@ -37,6 +40,8 @@ impl Config {
 				Ok("staging") => Environment::Staging,
 				_ => Environment::Development,
 			},
+			otlp_endpoint: env::var("OTEL_EXPORTER_OTLP_ENDPOINT").ok().filter(|s| !s.is_empty()),
+			trace_sample_ratio: env::var("OTEL_TRACES_SAMPLER_RATIO").unwrap_or_else(|_| "1.0".into()).parse().map_err(|_| ConfigError::Invalid("OTEL_TRACES_SAMPLER_RATIO"))?,
 		})
 	}
 }
