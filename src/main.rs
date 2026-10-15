@@ -24,20 +24,27 @@ async fn main() {
 
 	// from_env() returns Result<Config, ConfigError> — must be handled
 	let config = Config::from_env().expect("failed to load config");
+	telemetry::init(&config);
 
 	let db_pool = create_pool(&config.database_url).await;
 	let port = config.server_port;
 
 	let state = Arc::new(AppState { db_pool, config });
 
-	let app = routes::all_routes().with_state(state).layer(TraceLayer::new_for_http());
+	// Layers added later wrap those added earlier, so otel_context is outermost: the traceparent is extracted before TraceLayer or any handler code runs.
+	let app = routes::all_routes()
+		.with_state(state)
+		.layer(TraceLayer::new_for_http())
+		.layer(axum::middleware::from_fn(middleware::trace::otel_context));
 
 	// HTTP server setup
 	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
 
 	tracing::info!("Listening on 0.0.0.0:{port}");
 
-	axum::serve(listener, app).with_graceful_shutdown(shutdown_signal()).await.unwrap()
+	axum::serve(listener, app).with_graceful_shutdown(shutdown_signal()).await.unwrap();
+
+	telemetry::shudown();
 }
 
 async fn create_pool(database_url: &str) -> PgPool {
